@@ -43,9 +43,6 @@ class TwitterAccount {
         $this->signs = [];
 
 
-        $this->refresh();
-
-
     }
 
 
@@ -123,7 +120,7 @@ class TwitterAccount {
 		
 	} else {
 		
-		$this->username = "Not on twitter !";
+		$this->username = "Ad5001P4F";
 		
 	}
         foreach($this->signs as $sign) {

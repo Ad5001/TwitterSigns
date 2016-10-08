@@ -16,6 +16,9 @@ use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
 
 
+use pocketmine\utils\Config;
+
+
 use pocketmine\Server;
 
 
@@ -47,6 +50,28 @@ class Main extends PluginBase implements Listener {
 
         
         $this->accounts = [];
+
+
+        if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks")) {
+			@mkdir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks");
+		}
+		if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks/Ad5001")) {
+			@mkdir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks/Ad5001");
+		}
+		if(!file_exists($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json")) {
+			file_put_contents($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json", "{}");
+		}
+		$cfg = new Config($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json");
+        foreach ($cfg->getAll() as $posarr => $username) {
+            list($x, $y, $z) = explode("@", $posarr);
+            $tile = $this->getServer()->getDefaultLevel()->getTile(new \pocketmine\math\Vector3($x, $y, $z));
+            if($tile instanceof \pocketmine\tile\Sign) {
+                if(is_null($this->getAccount($tile->getText()[1]))) {
+                    $this->accounts[$tile->getText()[1]] = new TwitterAccount($this, $username);
+                }
+                $this->accounts[$tile->getText()[1]]->addSign(new Position($tile->x, $tile->y, $tile->z, $tile->getLevel()));
+            }
+        }
     }
 
 
@@ -57,7 +82,7 @@ class Main extends PluginBase implements Listener {
 
 
     public function onSignChange(\pocketmine\event\block\SignChangeEvent $event) {
-        if($event->getLine(0) == "twitter") {
+        if($event->getLine(0) == "twitter" && $event->getPlayer()->hasPermission("twittersigns.create")) {
             if(is_null($this->getAccount($event->getLine(1)))) {
                 $this->accounts[$event->getLine(1)] = new TwitterAccount($this, $event->getLine(1));
             }
@@ -81,34 +106,44 @@ class Main extends PluginBase implements Listener {
 		$cfg = new Config($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json");
         foreach ($cfg->getAll() as $posarr => $username) {
             list($x, $y, $z) = explode("@", $posarr);
-            $tile = $event->getLevel()->getTile(new \pocketmine\math\Vector3($x, $y, $z));
+            $tile = $event->getBlock()->getLevel()->getTile(new \pocketmine\math\Vector3($x, $y, $z));
             if($tile instanceof \pocketmine\tile\Sign) {
                 if(is_null($this->getAccount($tile->getText()[1]))) {
                     $this->accounts[$tile->getText()[1]] = new TwitterAccount($this, $username);
                 }
-                $this->accounts[$tile->getText()[1]]->addSign(new Position($tile->x, $tile->y, $tile->z, $event->getLevel()));
+                $this->accounts[$tile->getText()[1]]->addSign(new Position($tile->x, $tile->y, $tile->z, $tile->getLevel()));
             }
         }
     }
 
 
 
-    public function onBlockBreak(\pocketmine\event \block\BlockBreakEvent $event) {
+    public function onBlockBreak(\pocketmine\event\block\BlockBreakEvent $event) {
+
+        $block = $event->getBlock();
         
-		if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks")) {
-			@mkdir($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks");
+		if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks")) {
+			@mkdir($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks");
 		}
-		if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001")) {
-			@mkdir($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001");
+		if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks/Ad5001")) {
+			@mkdir($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks/Ad5001");
 		}
-		if(!file_exists($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json")) {
-			file_put_contents($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json", "{}");
+		if(!file_exists($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json")) {
+			file_put_contents($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json", "{}");
 		}
-		$cfg = new Config($this->getServer()->getFilePath() . "worlds/" . $event->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json");
-        $tile = $event->getLevel()->getTile($event->getBlock());
-        if($tile->getText()[0] == "twitter" or $tile->getText()[0] == "§o§f§l[§r§l§bTwitterSigns§o§f]") {
-            $username = preg_replace("/^§(\d|[a-f])@(\.+?)$/", "$2", $text);
-            $this->accounts[$username]->rmSign(new Position($tile->x, $tile->y, $tile->z, $event->getBlock()->getLevel()));
+		$cfg = new Config($this->getServer()->getFilePath() . "worlds/" . $block->getLevel()->getFolderName() . "/plugins_blocks/Ad5001/TwitterSigns.json");
+        $tile = $block->getLevel()->getTile($event->getBlock());
+        if(!is_null($tile) && ($tile->getText()[0] == "twitter" or $tile->getText()[0] == "§o§f§l[§r§l§bTwitterSigns§o§f]")) {
+            if($event->getPlayer()->hasPermission("twittersigns.remove")) {
+                $username = preg_replace("/^§(\d|[a-f])@(.+?)$/", "$2", $tile->getText()[1]);
+                if(!$this->accounts[$username]->rmSign(new Position($tile->x, $tile->y, $tile->z, $event->getBlock()->getLevel()))) {
+                    unset($this->accounts[$username]->signs[(string) new Position($tile->x, $tile->y, $tile->z, $event->getBlock()->getLevel())]);
+                }
+                $cfg->set($tile->x . "@" . $tile->y . "@" . $tile->z, null);
+                $cfg->save();
+            } else {
+                $event->setCancelled();
+            }
         }
 
     }
