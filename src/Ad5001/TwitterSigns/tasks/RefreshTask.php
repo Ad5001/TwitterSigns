@@ -8,7 +8,7 @@ namespace Ad5001\TwitterSigns\tasks;
 use pocketmine\Server;
 
 
-use pocketmine\schedulerPluginTask;
+use pocketmine\scheduler\PluginTask;
 
 
 use pocketmine\Player;
