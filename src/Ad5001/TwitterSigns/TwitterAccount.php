@@ -52,9 +52,9 @@ class TwitterAccount {
 		
 		$this->main->getLogger()->info("Adding signs at $loc");
 		
-		$this->signs[(string) $loc] = $loc->level->getTile($loc);
+		$this->signs[(string) $loc] = [$loc->level, $loc];
 		
-		$this->refresh($this->signs[(string) $loc]->getText()[3]);
+		$this->refresh($loc->level->getTile($loc)->getText()[3]);
 		
 	}
 	
@@ -111,9 +111,8 @@ class TwitterAccount {
 		}
         $cfg->save();
 		if(is_int($this->followers)) {
-			foreach($this->signs as $sign) {
-				
-				$text = $sign->getText()[2];
+			foreach($this->signs as $pos => $infos) {
+				$text = $infos[0]->getTile($infos[1])->getText()[2];
 				
 				if(is_null($color) or is_bool($color) or strlen($color) == 0 or !in_array($color, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, "a", "b", "c", "d", "e", "f"])) {
 					
@@ -124,7 +123,7 @@ class TwitterAccount {
                      $color = "b";
                     }
                 }
-                $sign->setText("§o§f§l[§r§l§bTwitterSigns§o§f]", "§$color@" . $this->username, "§$color"."Followers: $this->followers");
+                $infos[0]->getTile($infos[1])->setText("§o§f§l[§r§l§bTwitterSigns§o§f]", "§$color@" . $this->username, "§$color"."Followers: $this->followers");
             }
         }
     }

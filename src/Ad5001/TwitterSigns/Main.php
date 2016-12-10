@@ -68,10 +68,11 @@ class Main extends PluginBase implements Listener {
             list($x, $y, $z) = explode("@", $posarr);
             $tile = $this->getServer()->getDefaultLevel()->getTile(new \pocketmine\math\Vector3($x, $y, $z));
             if($tile instanceof \pocketmine\tile\Sign) {
-                if(is_null($this->getAccount($tile->getText()[1]))) {
-                    $this->accounts[$tile->getText()[1]] = new TwitterAccount($this, $username);
+                $username = preg_replace("/^§(\d|[a-f])@(.+?)$/", "$2", $tile->getText()[1]);
+                if(is_null($this->getAccount($username))) {
+                    $this->accounts[$username] = new TwitterAccount($this, $username);
                 }
-                $this->accounts[$tile->getText()[1]]->addSign(new Position($tile->x, $tile->y, $tile->z, $tile->getLevel()));
+                $this->accounts[$username]->addSign(new Position($tile->x, $tile->y, $tile->z, $tile->getLevel()));
             }
         }
     }
