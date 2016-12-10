@@ -43,6 +43,12 @@ class RefreshTask extends PluginTask {
         $this->server = $main->getServer();
 
 
+        $this->sessions1 = [];
+
+
+        $this->sessions2 = [];
+
+
     }
 
 
@@ -53,6 +59,8 @@ class RefreshTask extends PluginTask {
        foreach($this->main->getAccounts() as $account) {
            $account->refresh();
        }
+
+       $this->server->getScheduler()->scheduleAsyncTask(new RefreshTaskAsync($this->main->getDataFolder() . "tmp"));
 
 
     }

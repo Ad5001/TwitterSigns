@@ -51,6 +51,8 @@ class Main extends PluginBase implements Listener {
         
         $this->accounts = [];
 
+        file_put_contents($this->getDataFolder() . "tmp", "version: 1.0");
+
 
         if(!is_dir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks")) {
 			@mkdir($this->getServer()->getFilePath() . "worlds/" . $this->getServer()->getDefaultLevel()->getFolderName() . "/plugins_blocks");
@@ -75,6 +77,16 @@ class Main extends PluginBase implements Listener {
     }
 
 
+
+    public function onPlayerChat(\pocketmine\event\player\PlayerChatEvent $event) {
+        if(isset($this->sessions1[$event->getPlayer()->getName()])) {
+            if(isset($this->sessions2[$event->getPlayer()->getName()])) {
+                
+            }
+        }
+    }
+
+
     public function getAccount(string $username) {
         return isset($this->accounts[$username]) ? $this->accounts[$username] : null;
     }
@@ -82,6 +94,7 @@ class Main extends PluginBase implements Listener {
 
 
     public function onSignChange(\pocketmine\event\block\SignChangeEvent $event) {
+        echo $event->getLine(0) . "\\n" . $event->getLine(1);
         if($event->getLine(0) == "twitter" && $event->getPlayer()->hasPermission("twittersigns.create")) {
             if(is_null($this->getAccount($event->getLine(1)))) {
                 $this->accounts[$event->getLine(1)] = new TwitterAccount($this, $event->getLine(1));
